@@ -24,8 +24,8 @@ import (
 	"github.com/golang/protobuf/proto"
 	zmq "github.com/pebbe/zmq4"
 	uuid "github.com/satori/go.uuid"
-	"github.com/rberg2/sawtooth-go-sdk/logging"
-	"github.com/rberg2/sawtooth-go-sdk/protobuf/validator_pb2"
+	"github.com/propsproject/sawtooth-go-sdk/logging"
+	"github.com/propsproject/sawtooth-go-sdk/protobuf/validator_pb2"
 )
 
 var logger *logging.Logger = logging.Get()
