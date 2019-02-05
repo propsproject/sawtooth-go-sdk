@@ -21,14 +21,14 @@ import (
 	"fmt"
 	"github.com/golang/protobuf/proto"
 	zmq "github.com/pebbe/zmq4"
-	"os"
-	"os/signal"
-	"runtime"
 	"github.com/propsproject/sawtooth-go-sdk/logging"
 	"github.com/propsproject/sawtooth-go-sdk/messaging"
 	"github.com/propsproject/sawtooth-go-sdk/protobuf/network_pb2"
 	"github.com/propsproject/sawtooth-go-sdk/protobuf/processor_pb2"
 	"github.com/propsproject/sawtooth-go-sdk/protobuf/validator_pb2"
+	"os"
+	"os/signal"
+	"runtime"
 )
 
 var logger *logging.Logger = logging.Get()

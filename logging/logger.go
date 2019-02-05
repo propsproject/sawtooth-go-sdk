@@ -19,9 +19,8 @@ package logging
 
 import (
 	"fmt"
-	"io"
-	"log"
-	"os"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 const (
@@ -35,32 +34,55 @@ const (
 // Set the calldepth so we get the right file when logging
 const (
 	CALLDEPTH = 3
-	FLAGS     = log.Lshortfile | log.LstdFlags | log.Lmicroseconds
 )
 
 type Logger struct {
-	logger *log.Logger
+	logger *zap.Logger
+	sugar *zap.SugaredLogger
 	level  int
 }
 
-var _LOGGER *Logger = nil
+var _LOGGER *Logger= nil
 
 func Get() *Logger {
 	if _LOGGER == nil {
+		cfg := zap.Config{
+			Encoding:         "json",
+			Level:            zap.NewAtomicLevelAt(zapcore.DebugLevel),
+			OutputPaths:      []string{"stdout"},
+			ErrorOutputPaths: []string{"stdout"},
+			EncoderConfig: zapcore.EncoderConfig{
+				MessageKey: "message",
+
+				LevelKey:    "level",
+				EncodeLevel: zapcore.CapitalLevelEncoder,
+
+				TimeKey:    "timestamp",
+				EncodeTime: zapcore.ISO8601TimeEncoder,
+
+				CallerKey:    "caller",
+				EncodeCaller: zapcore.ShortCallerEncoder,
+			},
+		}
+		var logger, _ = cfg.Build()
+		var sugared = logger.Sugar()
 		_LOGGER = &Logger{
-			logger: log.New(os.Stdout, "", FLAGS),
-			level:  DEBUG,
+			logger: logger,
+			sugar: sugared,
+			level: DEBUG,
 		}
 	}
 	return _LOGGER
 }
 
-func (self *Logger) SetLevel(level int) {
-	self.level = level
+func (self *Logger) Output(format string, v ...interface{}) {
+	if self.level <= DEBUG {
+		self.logf("DEBUG", format, v...)
+	}
 }
 
-func (self *Logger) SetOutput(w io.Writer) {
-	self.logger.SetOutput(w)
+func (self *Logger) SetLevel(level int) {
+	self.level = level
 }
 
 func (self *Logger) Debugf(format string, v ...interface{}) {
@@ -124,9 +146,40 @@ func (self *Logger) Critical(v ...interface{}) {
 }
 
 func (self *Logger) logf(prefix string, format string, v ...interface{}) {
-	self.logger.Output(CALLDEPTH, "["+prefix+"] "+fmt.Sprintf(format, v...))
+	msg := "["+prefix+"] "+ fmt.Sprintf(format, v...)
+
+	switch prefix {
+	case "DEBUG":
+		self.sugar.Debug(format)
+	case "INFO":
+		self.sugar.Info(msg)
+	case "ERROR":
+		self.sugar.Error(msg)
+	case "CRITICAL":
+		self.sugar.Info(msg)
+	case "WARN":
+		self.sugar.Warn(msg)
+	default:
+		self.sugar.Info(msg)
+
+	}
 }
 
 func (self *Logger) log(prefix string, v ...interface{}) {
-	self.logger.Output(CALLDEPTH, "["+prefix+"] "+fmt.Sprint(v...))
+	msg := "["+prefix+"] "+fmt.Sprint(v...)
+	switch prefix {
+	case "DEBUG":
+		self.logger.Debug(msg)
+	case "INFO":
+		self.logger.Info(msg)
+	case "ERROR":
+		self.logger.Error(msg)
+	case "CRITICAL":
+		self.logger.Info(msg)
+	case "WARN":
+		self.logger.Warn(msg)
+	default:
+		self.logger.Info(msg)
+
+	}
 }
