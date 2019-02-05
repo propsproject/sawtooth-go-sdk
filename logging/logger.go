@@ -43,6 +43,7 @@ type Logger struct {
 }
 
 var _LOGGER *Logger= nil
+var list []interface{}
 
 func Get() *Logger {
 	if _LOGGER == nil {
@@ -150,26 +151,7 @@ func (self *Logger) logf(prefix string, format string, v ...interface{}) {
 
 	switch prefix {
 	case "DEBUG":
-		self.sugar.Debug(format)
-	case "INFO":
-		self.sugar.Info(msg)
-	case "ERROR":
-		self.sugar.Error(msg)
-	case "CRITICAL":
-		self.sugar.Info(msg)
-	case "WARN":
-		self.sugar.Warn(msg)
-	default:
-		self.sugar.Info(msg)
-
-	}
-}
-
-func (self *Logger) log(prefix string, v ...interface{}) {
-	msg := "["+prefix+"] "+fmt.Sprint(v...)
-	switch prefix {
-	case "DEBUG":
-		self.logger.Debug(msg)
+		self.logger.Debug(format)
 	case "INFO":
 		self.logger.Info(msg)
 	case "ERROR":
@@ -180,6 +162,30 @@ func (self *Logger) log(prefix string, v ...interface{}) {
 		self.logger.Warn(msg)
 	default:
 		self.logger.Info(msg)
+
+	}
+}
+
+func (self *Logger) SetDefaultKeyValues(keysAndValues ...interface{}) {
+	list = keysAndValues
+}
+
+func (self *Logger) log(prefix string, v ...interface{}) {
+	msg := "["+prefix+"] "+fmt.Sprint(v...)
+
+	switch prefix {
+	case "DEBUG":
+		self.sugar.Debug(msg)
+	case "INFO":
+		self.sugar.Infow(msg, list...)
+	case "ERROR":
+		self.sugar.Error(msg)
+	case "CRITICAL":
+		self.sugar.Info(msg)
+	case "WARN":
+		self.sugar.Warn(msg)
+	default:
+		self.sugar.Info(msg)
 
 	}
 }
